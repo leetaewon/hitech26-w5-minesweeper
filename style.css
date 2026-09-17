@@ -1,0 +1,109 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  background: #c0c0c0;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.game {
+  background: #c0c0c0;
+  border: 6px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  padding: 10px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #c0c0c0;
+  border: 4px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+}
+
+.counter {
+  background: #000;
+  color: #ff2400;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  font-size: 28px;
+  padding: 2px 6px;
+  letter-spacing: 2px;
+  min-width: 3ch;
+  text-align: center;
+}
+
+.face-btn {
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
+  line-height: 1;
+  background: #c0c0c0;
+  border: 3px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  cursor: pointer;
+}
+
+.face-btn:active {
+  border-color: #808080 #ffffff #ffffff #808080;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(9, 32px);
+  grid-template-rows: repeat(9, 32px);
+  gap: 0;
+  border: 4px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+}
+
+.cell {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  user-select: none;
+  background: #c0c0c0;
+  border: 3px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  cursor: pointer;
+}
+
+.cell.open {
+  border: 1px solid #999;
+  background: #d0d0d0;
+  cursor: default;
+}
+
+.cell.mine {
+  background: #ff4d4d;
+}
+
+.cell.flag::before {
+  content: "🚩";
+}
+
+.cell.open.mine::before {
+  content: "💣";
+}
+
+.cell[data-count="1"] { color: #0000ff; }
+.cell[data-count="2"] { color: #008000; }
+.cell[data-count="3"] { color: #ff0000; }
+.cell[data-count="4"] { color: #000080; }
+.cell[data-count="5"] { color: #800000; }
+.cell[data-count="6"] { color: #008080; }
+.cell[data-count="7"] { color: #000000; }
+.cell[data-count="8"] { color: #808080; }
