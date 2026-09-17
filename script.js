@@ -1,11 +1,19 @@
-const ROWS = 9;
-const COLS = 9;
-const MINES = 10;
+const DIFFICULTIES = {
+  beginner: { rows: 9, cols: 9, mines: 10 },
+  intermediate: { rows: 16, cols: 16, mines: 40 },
+  expert: { rows: 16, cols: 30, mines: 99 },
+};
+
+let ROWS = DIFFICULTIES.beginner.rows;
+let COLS = DIFFICULTIES.beginner.cols;
+let MINES = DIFFICULTIES.beginner.mines;
+let currentLevel = 'beginner';
 
 const boardEl = document.getElementById('board');
 const mineCounterEl = document.getElementById('mine-counter');
 const timerEl = document.getElementById('timer');
 const faceBtn = document.getElementById('face-btn');
+const levelBtns = document.querySelectorAll('.level-btn');
 
 let board = [];
 let cellEls = [];
@@ -67,6 +75,8 @@ function placeMines(excludeRow, excludeCol) {
 }
 
 function renderBoard() {
+  boardEl.style.gridTemplateColumns = `repeat(${COLS}, 32px)`;
+  boardEl.style.gridTemplateRows = `repeat(${ROWS}, 32px)`;
   boardEl.innerHTML = '';
   cellEls = [];
   for (let r = 0; r < ROWS; r++) {
@@ -78,6 +88,13 @@ function renderBoard() {
       cellEl.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         handleRightClick(r, c);
+      });
+      // 좌우 버튼을 동시에 누르면 깃발 수가 맞는 숫자 칸 주변을 한번에 개봉한다
+      cellEl.addEventListener('mousedown', (e) => {
+        if (e.buttons === 3) {
+          e.preventDefault();
+          chordCell(r, c);
+        }
       });
       boardEl.appendChild(cellEl);
       rowEls.push(cellEl);
@@ -151,6 +168,38 @@ function handleRightClick(r, c) {
   updateMineCounter();
 }
 
+function chordCell(r, c) {
+  const cell = board[r][c];
+  if (gameOver || !cell.isOpen || cell.adjacentCount === 0) return;
+
+  const neighbors = [];
+  let flagCount = 0;
+  forEachNeighbor(r, c, (nr, nc) => {
+    neighbors.push([nr, nc]);
+    if (board[nr][nc].isFlagged) flagCount++;
+  });
+  if (flagCount !== cell.adjacentCount) return;
+
+  let firstMineHit = null;
+  neighbors.forEach(([nr, nc]) => {
+    const neighborCell = board[nr][nc];
+    if (neighborCell.isFlagged || neighborCell.isOpen) return;
+    if (neighborCell.isMine) {
+      if (!firstMineHit) firstMineHit = [nr, nc];
+      neighborCell.isOpen = true;
+      updateCellView(nr, nc);
+    } else {
+      openCell(nr, nc);
+    }
+  });
+
+  if (firstMineHit) {
+    endGame(false, firstMineHit[0], firstMineHit[1]);
+  } else {
+    checkWin();
+  }
+}
+
 function checkWin() {
   if (openedCount === ROWS * COLS - MINES) {
     endGame(true);
@@ -162,10 +211,31 @@ function endGame(won, clickedR, clickedC) {
   stopTimer();
   if (won) {
     faceBtn.textContent = '😎';
+    launchConfetti();
   } else {
     faceBtn.textContent = '😵';
     revealAllMines(clickedR, clickedC);
   }
+}
+
+function launchConfetti() {
+  const container = document.createElement('div');
+  container.className = 'confetti-container';
+  document.body.appendChild(container);
+
+  const colors = ['#ff595e', '#ffca3a', '#8ac926', '#1982c4', '#6a4c93'];
+  for (let i = 0; i < 150; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = `${Math.random() * 100}vw`;
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDuration = `${2 + Math.random() * 1.5}s`;
+    piece.style.animationDelay = `${Math.random() * 0.5}s`;
+    piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+    container.appendChild(piece);
+  }
+
+  setTimeout(() => container.remove(), 4000);
 }
 
 function startTimer() {
@@ -203,6 +273,18 @@ function resetGame() {
   updateMineCounter();
 }
 
-faceBtn.addEventListener('click', resetGame);
+function setDifficulty(level) {
+  const config = DIFFICULTIES[level];
+  if (!config) return;
+  currentLevel = level;
+  ROWS = config.rows;
+  COLS = config.cols;
+  MINES = config.mines;
+  levelBtns.forEach((btn) => btn.classList.toggle('active', btn.dataset.level === level));
+  resetGame();
+}
 
-resetGame();
+faceBtn.addEventListener('click', resetGame);
+levelBtns.forEach((btn) => btn.addEventListener('click', () => setDifficulty(btn.dataset.level)));
+
+setDifficulty(currentLevel);
